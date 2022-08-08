@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'java && docker' }
+    agent { label 'java' }
 
     options {
         timeout(time: 1, unit: 'HOURS') 
@@ -15,11 +15,13 @@ pipeline {
                 echo("TAG_SELECTOR=${TAG_SELECTOR}")
 
                 echo 'Building..'
+                sh 'mvn spring-boot:build-image'
             }
         }
         stage('Push image') {
             steps {
                 echo 'Testing..'
+                sh 'docker images'
             }
         }
         stage('Deploy to pre prod') {
@@ -32,7 +34,8 @@ pipeline {
                 }
             }
             steps {
-                echo 'Deploying'
+                echo 'Deploying to preprod'
+                sh 'kubectl get pods'
             }
         }
         stage('Deploy to prod') {
@@ -49,11 +52,8 @@ pipeline {
             }
             steps {
                 echo 'Deploying'
+                sh 'kubectl get pods'
             }
         }
     }
-}
-
-def getGitBranchName() {
-    return scm.branches[0].name
 }
