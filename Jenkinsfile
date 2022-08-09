@@ -60,13 +60,13 @@ pipeline {
             steps {
 
                 script {
-                    if(! env.app_dev_namespace){
+                    if(! env.app_staging_namespace){
                            echo "[DEBUG] ${env.app_staging_namespace}"
                            env.app_dev_namespace = "staging"
                     }
                 }
                 echo 'Deploying'
-                sh "kubectl get pods -n ${env.app_dev_namespace}"
+                sh "kubectl get pods -n ${env.app_staging_namespace}"
             }
         }
     }
