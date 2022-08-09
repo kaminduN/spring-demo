@@ -15,7 +15,7 @@ pipeline {
                 echo("TAG_SELECTOR=${TAG_SELECTOR}")
 
                 echo 'Building..'
-                sh 'mvn spring-boot:build-image'
+                sh 'mvn clean spring-boot:build-image'
             }
         }
         stage('Push image') {
