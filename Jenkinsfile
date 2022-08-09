@@ -89,8 +89,7 @@ pipeline {
 
             snsPublish(topicArn:"${env.build_notification_sns}", 
                        subject:"BUILD  ${env.BUILD_TAG} SUCCESS", 
-                       message:"This is your success message.
-                       ${env.BUILD_URL}")
+                       message:"This is your success message. \n ${env.BUILD_URL}")
         }
         unstable {
             echo 'I am unstable :/'
