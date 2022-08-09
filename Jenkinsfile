@@ -21,7 +21,7 @@ pipeline {
         stage('Push image') {
             steps {
                 script {
-                    DOCKER_REPO = ${env.app_docker_repo}
+                    DOCKER_REPO = "${env.app_docker_repo}"
                     ARTIFACT_ID = readMavenPom().getArtifactId()
                 }
 
