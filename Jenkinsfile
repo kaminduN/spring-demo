@@ -10,9 +10,9 @@ pipeline {
                 checkout scm
 
                 script {
-                    TAG_SELECTOR = readMavenPom().getVersion()
+                    VER_TAG_SELECTOR = readMavenPom().getVersion()
                 }
-                echo("TAG_SELECTOR=${TAG_SELECTOR}")
+                echo("VER_TAG_SELECTOR=${VER_TAG_SELECTOR}")
 
                 echo 'Building..'
                 sh 'mvn clean spring-boot:build-image'
@@ -20,8 +20,16 @@ pipeline {
         }
         stage('Push image') {
             steps {
+                script {
+                    DOCKER_REPO = "${env.app_docker_repo}"
+                    ARTIFACT_ID = readMavenPom().getArtifactId()
+                }
+
                 echo 'Testing..'
                 sh 'docker images'
+                sh "docker tag ${ARTIFACT_ID}:${VER_TAG_SELECTOR} ${DOCKER_REPO}/${ARTIFACT_ID}:${VER_TAG_SELECTOR}"
+
+                // sh "docker push ${DOCKER_REPO}/${ARTIFACT_ID}:${VER_TAG_SELECTOR}"
             }
         }
         stage('Deploy to pre prod') {
@@ -42,7 +50,8 @@ pipeline {
                     }
                 }
                 echo 'Deploying'
-                sh "kubectl get pods -n ${env.app_dev_namespace}"            }
+                sh "kubectl get pods -n ${env.app_dev_namespace}"            
+            }
         }
         stage('Deploy to prod') {
             agent { 
@@ -68,6 +77,28 @@ pipeline {
                 echo 'Deploying'
                 sh "kubectl get pods -n ${env.app_staging_namespace}"
             }
+        }
+    }
+    post {
+        always {
+            echo 'One way or another, I have finished'
+            // deleteDir() /* clean up our workspace */
+        }
+        success {
+            echo 'I succeeded!'
+
+            snsPublish(topicArn:"${env.build_notification_sns}", 
+                       subject:"BUILD  ${env.BUILD_TAG} SUCCESS", 
+                       message:"This is your success message. \n ${env.BUILD_URL}")
+        }
+        unstable {
+            echo 'I am unstable :/'
+        }
+        failure {
+            echo 'I failed :('
+        }
+        changed {
+            echo 'Things were different before...'
         }
     }
 }
